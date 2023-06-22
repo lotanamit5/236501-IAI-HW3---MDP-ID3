@@ -1,7 +1,11 @@
 from copy import deepcopy
 import numpy as np
 
-
+def get_legal_states(mdp):
+    for i in range(mdp.num_row):
+        for j in range(mdp.num_col):
+            if board[i][j] != "WALL"
+    
 def value_iteration(mdp, U_init, epsilon=10 ** (-3)):
     # TODO:
     # Given the mdp, the initial utility of each state - U_init,
@@ -11,7 +15,17 @@ def value_iteration(mdp, U_init, epsilon=10 ** (-3)):
     #
 
     # ====== YOUR CODE: ======
-    raise NotImplementedError
+    delta = 0
+    gamma = mdp.gamma
+    U_ = U_init
+    
+    while delta < epsilon * (1 - gamma) / gamma:
+        U = U_
+        delta = 0
+        
+        for i, j in [(i,j) for i in  for j in range(mdp.num_col)]:
+            U_[i][j] = mdp.board[]
+        
     # ========================
 
 
