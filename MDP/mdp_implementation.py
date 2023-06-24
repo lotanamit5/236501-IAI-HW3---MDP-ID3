@@ -4,7 +4,9 @@ import numpy as np
 def get_legal_states(mdp):
     for i in range(mdp.num_row):
         for j in range(mdp.num_col):
-            if board[i][j] != "WALL"
+            if mdp.board[i][j] == "WALL" or (i, j) in mdp.terminal_states:
+                continue
+            yield (i, j)
     
 def value_iteration(mdp, U_init, epsilon=10 ** (-3)):
     # TODO:
@@ -15,17 +17,34 @@ def value_iteration(mdp, U_init, epsilon=10 ** (-3)):
     #
 
     # ====== YOUR CODE: ======
-    delta = 0
+    delta = float('inf')
     gamma = mdp.gamma
-    U_ = U_init
+    U_ = deepcopy(U_init)
+    U = None
     
-    while delta < epsilon * (1 - gamma) / gamma:
-        U = U_
+    for i, j in mdp.terminal_states:
+        U_[i][j] = float(mdp.board[i][j])
+    
+    while delta > epsilon * (1 - gamma) / gamma:
         delta = 0
+        U = deepcopy(U_)
         
-        for i, j in [(i,j) for i in  for j in range(mdp.num_col)]:
-            U_[i][j] = mdp.board[]
-        
+        for i, j in get_legal_states(mdp):
+            reward = float(mdp.board[i][j])
+            sums = []
+            profits = [U[i_][j_] for i_, j_ in [mdp.step((i,j), a) for a in mdp.actions.keys()]]
+            for action in mdp.actions.keys():
+                probs = mdp.transition_function[action]
+                muls = [profit * prob for profit, prob in zip(profits, probs)]
+                sums.append(sum(muls))
+            
+            U_[i][j] = reward + gamma * max(sums)
+            
+            if abs(U_[i][j] - U[i][j]) > delta:
+                delta = abs(U_[i][j] - U[i][j])
+            
+    return U
+
     # ========================
 
 
@@ -36,7 +55,18 @@ def get_policy(mdp, U):
     #
 
     # ====== YOUR CODE: ======
-    raise NotImplementedError
+    policy = deepcopy(U)
+    
+    for i, j in get_legal_states(mdp):
+        sums = []
+        profits = [U[i_][j_] for i_, j_ in [mdp.step((i,j), a) for a in mdp.actions.keys()]]
+        for action in mdp.actions.keys():
+            probs = mdp.transition_function[action]
+            muls = [profit * prob for profit, prob in zip(profits, probs)]
+            sums.append(sum(muls))
+        best_index = sums.index(max(sums))
+        policy[i][j] = ["UP, "DOWN", "RIGHT", "LEFT][best_index]
+    return policy
     # ========================
 
 
