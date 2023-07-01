@@ -1,7 +1,7 @@
 import unittest
 import numpy as np
 from utils import accuracy
-
+from ID3 import ID3
 
 class Test(unittest.TestCase):
 
@@ -16,7 +16,14 @@ class Test(unittest.TestCase):
         accuracy_val = accuracy(y1, y2)
         self.assertEqual(accuracy_val, 1 / 3)
         print('Success')
-
+    
+    def test_entropy(self):
+        rows = np.array([[0, 0, 1]]*19)
+        labels = np.array([0]*9 + [1]*10)
+        
+        impurity = ID3.entropy(rows, labels)
+        self.assertAlmostEqual(impurity, 0.99, delta=0.01)
+        print('Success')
 
 
 if __name__ == '__main__':
