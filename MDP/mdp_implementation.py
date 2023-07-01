@@ -6,6 +6,24 @@ actions_to_idx = {"UP":0, "DOWN":1, "RIGHT":2, "LEFT":3}
 idx_to_actions = ["UP", "DOWN", "RIGHT", "LEFT"]
 
 @staticmethod
+def deepcopy_with_walls(mdp, U):
+    U_ = deepcopy(U)
+    for i in range(mdp.num_row):
+        for j in range(mdp.num_col):
+            if mdp.board[i][j] == "WALL":
+                U_[i][j] = None
+    return U_
+
+@staticmethod
+def deepcopy_with_final_states(mdp, U):
+    U_ = deepcopy(U)
+    for i in range(mdp.num_row):
+        for j in range(mdp.num_col):
+            if (i, j) in mdp.terminal_states:
+                U_[i][j] = None
+    return U_
+
+@staticmethod
 def get_states(mdp: MDP):
     for i in range(mdp.num_row):
         for j in range(mdp.num_col):
@@ -68,7 +86,7 @@ def value_iteration(mdp, U_init, epsilon=10 ** (-3)):
     # ====== YOUR CODE: ======
     delta = float('inf')
     gamma = mdp.gamma
-    U_ = deepcopy(U_init)
+    U_ = deepcopy_with_walls(mdp, U_init)
     U = None
     
     for i, j in mdp.terminal_states:
@@ -98,12 +116,13 @@ def get_policy(mdp, U):
     #
 
     # ====== YOUR CODE: ======
-    policy = deepcopy(U)
+    policy = deepcopy_with_final_states(mdp, U)
     
     for i, j in get_legal_states(mdp):
         sums = [utility(mdp, U, (i,j), action) for action in mdp.actions.keys()]
         best_index = sums.index(max(sums))
         policy[i][j] = ["UP", "DOWN", "RIGHT", "LEFT"][best_index]
+    
     return policy
     # ========================
 
@@ -146,19 +165,13 @@ def policy_iteration(mdp, policy_init):
     policy = deepcopy(policy_init)
     
     changed = True
-    i=0
     while changed:
-        # print(f"iteration {i}")
-        i += 1
         U = policy_evaluation(mdp, policy)
-        # print("policy evaluation:")
-        # mdp.print_utility(U)
         changed = False
         
         for s in get_states(mdp):
             utilities = [total_utility(mdp, U, s, a) for a in actions_to_idx]
             if max(utilities) > total_utility(mdp, U, s, action_from_policy(policy, s)):
-                # print('max no good')
                 i, j = s
                 policy[i][j] = idx_to_actions[utilities.index(max(utilities))]
                 changed = True

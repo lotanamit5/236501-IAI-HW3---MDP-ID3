@@ -84,8 +84,8 @@ def example_driver():
     U_eval = policy_evaluation(mdp, policy)
     mdp.print_utility(U_eval)
 
-    policy = [['UP', 'UP', 'UP', 0],
-              ['UP', 'WALL', 'UP', 0],
+    policy = [['UP', 'UP', 'UP', None],
+              ['UP', None, 'UP', None],
               ['UP', 'UP', 'UP', 'UP']]
 
     print("\nInitial policy:")
