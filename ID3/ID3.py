@@ -111,7 +111,7 @@ class ID3:
 
         # ====== YOUR CODE: ======
         
-        for column_idx in range(len(rows[0])):
+        for column_idx in range(rows.shape[1]):
             values = sorted(rows[:, column_idx])
             thresholds = [(values[i] + values[i+1]) / 2 for i in range(len(values) - 1)]
             for threshold in thresholds:
@@ -144,6 +144,8 @@ class ID3:
         true_branch, false_branch = None, None
 
         # ====== YOUR CODE: ======
+        if len(labels) <= 1:
+            return Leaf(rows, labels)
 
         best_gain, best_question, best_true_rows, best_true_labels, best_false_rows, best_false_labels \
             = self.find_best_split(rows, labels)

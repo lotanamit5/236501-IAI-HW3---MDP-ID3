@@ -5,6 +5,7 @@ from utils import *
 Make the imports of python packages needed
 """
 from sklearn.model_selection import KFold
+from sklearn.model_selection import cross_validate
 """
 ========================================================================
 ========================================================================
@@ -27,9 +28,9 @@ def find_best_pruning_m(train_dataset: np.array, m_choices, num_folds=5):
         accuracies: The accuracies per fold for each M (list of lists).
     """
 
-    # accuracies = []
-    # for i, m in enumerate(m_choices):
-    #     model = ID3(label_names=attributes_names, min_for_pruning=m)
+    accuracies = []
+    for i, m in enumerate(m_choices):
+        model = ID3(label_names=attributes_names, min_for_pruning=m)
     # TODO:
     #  - Add a KFold instance of sklearn.model_selection, pass <ID> as random_state argument.
     #  - Train model num_folds times with different train/val data.
@@ -39,32 +40,16 @@ def find_best_pruning_m(train_dataset: np.array, m_choices, num_folds=5):
     #  or implement something else.
 
     # ====== YOUR CODE: ======
-    X = np.array(train_dataset.drop(target_attribute, axis=1).copy())
-    y = np.array(train_dataset[target_attribute].copy())
-    
-    ID = 207180837
-    kf = KFold(n_splits=num_folds, shuffle=True, random_state=ID)
-    
-    accuracies = []
-    for i, m in enumerate(m_choices):
-    
-        acc = []
-        for i, (train_index, valid_index) in enumerate(kf.split(X)):
-            print(f"Split {i}: {len(train_index)}:{len(valid_index)}")
-            # split to train and validation
-            X_train, X_valid = X[train_index], X[valid_index]
-            y_train, y_valid = y[train_index], y[valid_index]
+        kf = KFold(n_splits=num_folds, shuffle=True, random_state=208800342)
 
-            # train and test the model
-            model = ID3(label_names=attributes_names, min_for_pruning=m)
-            model.fit(X_train, y_train)
-            y_pred = model.predict(X_valid)
-            current_acc = np.sum(y_valid == y_pred) / len(y_valid)
-            print(f"Accuracy: {current_acc}")
-            acc.append(current_acc)
-        
-        # append the average accuracy for the folds
-        accuracies.append(np.array(acc))
+        fold_accuracies = []
+        for ds_train, ds_valid in create_train_validation_split(train_dataset, kf):
+            x_train, y_train, x_valid, y_valid = get_dataset_split(ds_train, ds_valid, target_attribute)
+            model.fit(x_train, y_train)
+            y_pred = model.predict(x_valid)
+            acc = accuracy(y_valid, y_pred)
+            fold_accuracies.append(acc)
+        accuracies.append(fold_accuracies)
         
     # ========================
 
@@ -120,12 +105,13 @@ def cross_validation_experiment(plot_graph=True):
     best_m = None
     accuracies = []
     m_choices = []
-    num_folds = 2
+    num_folds = 5
 
     # ====== YOUR CODE: ======
-    m_choices = [0,50] #list(range(0,16))
     
-    # assert len(m_choices) >= 5, 'fill the m_choices list with  at least 5 different values for M.'
+    m_choices = list(range(0, 100, 10))
+    
+    assert len(m_choices) >= 5, 'fill the m_choices list with  at least 5 different values for M.'
 
     best_m, accuracies = find_best_pruning_m(train_dataset, m_choices, num_folds)
 
@@ -193,7 +179,8 @@ if __name__ == '__main__':
            modify the value from False to True to plot the experiment result
     """
     plot_graphs = True
-    best_m = cross_validation_experiment(plot_graph=plot_graphs)
+    # best_m = cross_validation_experiment(plot_graph=plot_graphs)
+    best_m = 50
     print(f'best_m = {best_m}')
 
     """
