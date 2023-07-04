@@ -4,7 +4,7 @@ from utils import *
 """
 Make the imports of python packages needed
 """
-
+from sklearn.model_selection import KFold
 """
 ========================================================================
 ========================================================================
@@ -27,20 +27,46 @@ def find_best_pruning_m(train_dataset: np.array, m_choices, num_folds=5):
         accuracies: The accuracies per fold for each M (list of lists).
     """
 
+    # accuracies = []
+    # for i, m in enumerate(m_choices):
+    #     model = ID3(label_names=attributes_names, min_for_pruning=m)
+    # TODO:
+    #  - Add a KFold instance of sklearn.model_selection, pass <ID> as random_state argument.
+    #  - Train model num_folds times with different train/val data.
+    #  Don't use any third-party libraries.
+    #  You can use create_train_validation_split train/validation splitter from utils.py
+    #  (note that then it won't be exactly k-fold CV since it will be a random split each iteration),
+    #  or implement something else.
+
+    # ====== YOUR CODE: ======
+    X = np.array(train_dataset.drop(target_attribute, axis=1).copy())
+    y = np.array(train_dataset[target_attribute].copy())
+    
+    ID = 207180837
+    kf = KFold(n_splits=num_folds, shuffle=True, random_state=ID)
+    
     accuracies = []
     for i, m in enumerate(m_choices):
-        model = ID3(label_names=attributes_names, min_for_pruning=m)
-        # TODO:
-        #  - Add a KFold instance of sklearn.model_selection, pass <ID> as random_state argument.
-        #  - Train model num_folds times with different train/val data.
-        #  Don't use any third-party libraries.
-        #  You can use create_train_validation_split train/validation splitter from utils.py
-        #  (note that then it won't be exactly k-fold CV since it will be a random split each iteration),
-        #  or implement something else.
+    
+        acc = []
+        for i, (train_index, valid_index) in enumerate(kf.split(X)):
+            print(f"Split {i}: {len(train_index)}:{len(valid_index)}")
+            # split to train and validation
+            X_train, X_valid = X[train_index], X[valid_index]
+            y_train, y_valid = y[train_index], y[valid_index]
 
-        # ====== YOUR CODE: ======
-        raise NotImplementedError
-        # ========================
+            # train and test the model
+            model = ID3(label_names=attributes_names, min_for_pruning=m)
+            model.fit(X_train, y_train)
+            y_pred = model.predict(X_valid)
+            current_acc = np.sum(y_valid == y_pred) / len(y_valid)
+            print(f"Accuracy: {current_acc}")
+            acc.append(current_acc)
+        
+        # append the average accuracy for the folds
+        accuracies.append(np.array(acc))
+        
+    # ========================
 
     best_m_idx = np.argmax([np.mean(acc) for acc in accuracies])
     best_m = m_choices[best_m_idx]
@@ -62,7 +88,15 @@ def basic_experiment(x_train, y_train, x_test, y_test, formatted_print=False):
     acc = None
 
     # ====== YOUR CODE: ======
-    raise NotImplementedError
+    
+    model = ID3(label_names=attributes_names)
+    
+    model.fit(x_train, y_train)
+    
+    y_pred = model.predict(x_test)
+    
+    acc = np.sum(y_test == y_pred) / len(y_test)
+    
     # ========================
 
     assert acc > 0.9, 'you should get an accuracy of at least 90% for the full ID3 decision tree'
@@ -86,11 +120,14 @@ def cross_validation_experiment(plot_graph=True):
     best_m = None
     accuracies = []
     m_choices = []
-    num_folds = 5
+    num_folds = 2
 
     # ====== YOUR CODE: ======
-    assert len(m_choices) >= 5, 'fill the m_choices list with  at least 5 different values for M.'
-    raise NotImplementedError
+    m_choices = [0,50] #list(range(0,16))
+    
+    # assert len(m_choices) >= 5, 'fill the m_choices list with  at least 5 different values for M.'
+
+    best_m, accuracies = find_best_pruning_m(train_dataset, m_choices, num_folds)
 
     # ========================
     accuracies_mean = np.array([np.mean(acc) * 100 for acc in accuracies])
@@ -124,7 +161,13 @@ def best_m_test(x_train, y_train, x_test, y_test, min_for_pruning):
     acc = None
 
     # ====== YOUR CODE: ======
-    raise NotImplementedError
+    model = ID3(label_names=attributes_names, min_for_pruning=min_for_pruning)
+    
+    model.fit(x_train, y_train)
+    
+    y_pred = model.predict(x_test)
+    
+    acc = np.sum(y_test == y_pred) / len(y_test)
     # ========================
 
     return acc
