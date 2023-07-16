@@ -171,7 +171,9 @@ def policy_iteration(mdp, policy_init):
         
         for s in get_states(mdp):
             utilities = [total_utility(mdp, U, s, a) for a in actions_to_idx]
-            if max(utilities) > total_utility(mdp, U, s, action_from_policy(policy, s)):
+            max_util = max(utilities)
+            total_util = total_utility(mdp, U, s, action_from_policy(policy, s))
+            if max_util > total_util and not np.isclose(max_util, total_util, rtol=1e-6):
                 i, j = s
                 policy[i][j] = idx_to_actions[utilities.index(max(utilities))]
                 changed = True
